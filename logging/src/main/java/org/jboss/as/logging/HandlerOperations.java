@@ -214,6 +214,12 @@ final class HandlerOperations {
             HandlerConfiguration configuration = logContextConfiguration.getHandlerConfiguration(name);
             boolean replaceHandler = false;
             final boolean exists = configuration != null;
+            // Check that the handler does not exist. If the server is booting handlers with the same name are replaced,
+            // rather than producing a boot error. This could happen if the XML was manually updated and the logging.properties
+            // file was using the old values.
+            if (exists && !context.isBooting()) {
+                throw createOperationFailure(LoggingLogger.ROOT_LOGGER.handlerAlreadyDefined(name));
+            }
             if (!exists) {
                 LoggingLogger.ROOT_LOGGER.tracef("Adding handler '%s' at '%s'", name, LoggingOperations.getAddress(operation));
                 configuration = createHandlerConfiguration(className, moduleName, name, logContextConfiguration);
